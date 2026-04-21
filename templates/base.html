@@ -1,53 +1,108 @@
 <!DOCTYPE html>
-<html>
+{% load static %}  <html lang="en"
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
- <title>{% block title %}Newspaper App{% endblock title %}</title>
-<style>
-body {
-  margin: 2;
-  padding: 2;
-}
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}TO-BIT. - Arcade Dashboard{% endblock title %}</title>
+    <link rel="icon" type="image/png" href="{% static 'images/favicon.png' %}">
+    
+    
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 
-h2, p {
-  margin: 10px;
-}
-
-ul {
-  list-style-type: none;
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
-  background-color: #333333;
-}
-
-ul li {
-  float: left;
-}
-
-ul li a {
-  display: block;
-  color: white;
-  text-align: center;
-  padding: 14px 16px;
-  text-decoration: none;
-}
-
-ul li a:hover {
-  background-color: #111111;
-}
-</style>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        lifeos: {
+                            bg: '#ffe823',   /* Vivid Gold */
+                            text: '#4d0057', /* Deep Violet/Magenta */
+                            accent1: '#00ffff', /* Cyan */
+                            accent2: '#ffff00', /* Yellow */
+                            accent3: '#ff6a00', /* Orange */
+                        }
+                    },
+                    fontFamily: {
+                        sans: ["'Press Start 2P'", 'monospace', 'sans-serif'], 
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body::after {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+            background-size: 100% 4px;
+            z-index: 1000;
+            pointer-events: none; 
+        }
+    </style>
 </head>
 
-<body>
-<ul>
-  <li><a href="{% url 'home' %}">Home  </a></li>
-  <li><a href="{% url 'whatsnew' %}">News  </a></li>
-  <li><a href="{% url 'contact' %}">Contact  </a></li>
-  <li><a href="{% url 'about' %}">About</a></li>
-</ul>
-  {% block content %} {% endblock content %}
-</body>
+<body class="bg-lifeos-bg text-lifeos-text font-sans min-h-screen flex flex-col selection:bg-lifeos-accent1 selection:text-lifeos-text">
 
+    <nav class="sticky top-0 z-50 bg-lifeos-bg border-b-4 border-lifeos-text px-4 py-4 grid grid-cols-3 items-center">
+        
+        <div class="justify-self-start">
+            <a href="{% url 'home' %}" class="block hover:opacity-80 transition-opacity">
+                <img src="{% static 'images/nav-logo.png' %}" alt="TO-BIT." class="h-20 md:h-24 w-auto -my-9 -ml-8 md:-ml-6 object-contain relative z-50">
+            </a>
+        </div>
+
+        <ul class="hidden md:flex justify-self-center items-center divide-x-4 divide-lifeos-text text-[10px] leading-loose">
+            <li><a href="{% url 'whatsnew' %}" class="px-4 hover:text-lifeos-accent1 transition-colors">WHAT'S NEW</a></li>
+            <li><a href="{% url 'about' %}" class="px-4 hover:text-lifeos-accent3 transition-colors">ABOUT</a></li>
+            <li><a href="{% url 'contact' %}" class="px-4 hover:text-lifeos-accent1 transition-colors">CONTACT</a></li>
+            <li><a href="#" class="px-4 pl-4 pr-0 hover:text-lifeos-accent3 transition-colors">HELP</a></li>
+        </ul>
+
+        <div class="relative justify-self-end">
+            <button id="profile-btn" class="flex items-center justify-center p-2 border-4 border-lifeos-text bg-white shadow-[4px_4px_0px_0px_#4d0057] hover:translate-y-1 hover:translate-x-1 hover:shadow-none transition-all focus:outline-none">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="square" stroke-linejoin="miter" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+            </button>
+
+            <div id="dropdown-menu" class="hidden absolute right-0 mt-2 w-56 bg-lifeos-bg border-4 border-lifeos-text shadow-[8px_8px_0px_0px_#4d0057] flex flex-col z-50 text-xs">
+                {% if user.is_authenticated %}
+                    <a href="{% url 'password_change' %}" class="px-4 py-4 border-b-4 border-lifeos-text hover:bg-lifeos-accent1 transition-colors">CHANGE PASSWORD</a>
+                    <form action="{% url 'logout' %}" method="post" class="m-0">
+                        {% csrf_token %}
+                        <button type="submit" class="w-full text-left px-4 py-4 hover:bg-lifeos-accent3 transition-colors">LOG OUT</button>
+                    </form>
+                {% else %}
+                    <a href="{% url 'login' %}" class="px-4 py-4 border-b-4 border-lifeos-text hover:bg-lifeos-accent1 transition-colors">INSERT COIN (LOG IN)</a>
+                    <a href="{% url 'signup' %}" class="px-4 py-4 hover:bg-lifeos-accent3 transition-colors">PLAYER 2 (SIGN UP)</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <main class="flex-grow w-full max-w-7xl mx-auto p-6 mt-4">
+        {% block content %}{% endblock content %}
+    </main>
+
+    <script>
+        const btn = document.getElementById('profile-btn');
+        const menu = document.getElementById('dropdown-menu');
+
+        btn.addEventListener('click', (e) => {
+            menu.classList.toggle('hidden');
+            e.stopPropagation();
+        });
+
+        window.addEventListener('click', (e) => {
+            if (!menu.contains(e.target)) {
+                menu.classList.add('hidden');
+            }
+        });
+    </script>
+</body>
 </html>
