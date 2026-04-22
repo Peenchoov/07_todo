@@ -23,5 +23,6 @@ urlpatterns = [
     path("accounts/", include("accounts.urls")),
     path("todo/", include("todo.urls")),
     path("habits/", include("habits.urls")),
+    path("notes/", include("notes.urls")),
     path("", include("pages.urls")),
 ]

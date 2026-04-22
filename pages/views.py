@@ -4,7 +4,7 @@ from django.views.generic.edit import CreateView, UpdateView, DeleteView
 
 from todo.models import Task
 from habits.models import Habit
-
+from notes.models import Note
 from datetime import date, timedelta
 
 
@@ -51,7 +51,19 @@ class HomePageView(TemplateView):
                         and days_since_completed >= habit.interval_days
                     ):
                         should_reset = True
+
             context["habits"] = user_habits
+
+            expired_notes = Note.objects.filter(
+                author=self.request.user, time_to_delete__lte=today
+            )
+            expired_notes.delete()
+
+            user_notes = Note.objects.filter(author=self.request.user)
+
+            can_add_note = user_notes.count() < 5
+            context["notes"] = user_notes
+            context["can_add_note"] = can_add_note
         return context
 
 

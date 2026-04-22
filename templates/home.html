@@ -6,40 +6,37 @@
 
 {% if user.is_authenticated %}
     
-    <div class="mb-8 border-b-4 border-lifeos-text pb-4">
-        <h1 class="text-xl md:text-3xl leading-relaxed">HI, {{ user.username }}!</h1>
+    <div class="mb-8 border-b-4 border-lifeos-text pb-4 uppercase">
+        <h1 class="text-xl md:text-3xl leading-relaxed font-bold">HI, {{ user.username }}!</h1>
     </div>
 
-    <div class="flex flex-col lg:flex-row items-start gap-8 w-full">
+    <div class="flex flex-col lg:flex-row items-start gap-8 w-full uppercase">
         
         <div class="flex-grow w-full lg:w-2/3 flex flex-col gap-8">
             
             <section class="border-4 border-lifeos-text p-6 md:p-8 bg-white shadow-[8px_8px_0px_0px_#4d0057]">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b-4 border-lifeos-text pb-4 mb-6 gap-4">
-                    <h2 class="text-xl text-lifeos-accent3 drop-shadow-[2px_2px_0px_#4d0057]">TODO-LIST</h2>
-                    <button id="new-task-btn" class="bg-lifeos-accent1 text-lifeos-text border-4 border-lifeos-text px-4 py-3 text-[10px] shadow-[4px_4px_0px_0px_#4d0057] hover:translate-y-1 hover:translate-x-1 hover:shadow-none transition-all">
+                    <h2 class="text-xl text-lifeos-accent3 drop-shadow-[2px_2px_0px_#4d0057] font-bold">TODO-LIST</h2>
+                    <button id="new-task-btn" class="bg-lifeos-accent1 text-lifeos-text border-4 border-lifeos-text px-4 py-3 text-[10px] font-bold shadow-[4px_4px_0px_0px_#4d0057] hover:translate-y-1 hover:translate-x-1 hover:shadow-none transition-all">
                         + NEW TASK
                     </button>
                 </div>
 
-                <form action="{% url 'add_task' %}" method="post" id="add-task-form" class="hidden flex flex-col gap-4 mb-6 text-[10px] border-b-4 border-lifeos-text/20 pb-6">
+                <form action="{% url 'add_task' %}" method="post" id="add-task-form" class="hidden flex flex-col gap-4 mb-6 text-[10px] font-bold border-b-4 border-lifeos-text/20 pb-6">
                     {% csrf_token %}
                     
                     <div>
-                        <label class="block mb-2 text-[8px] opacity-70">MISSION OBJECTIVE:</label>
+                        <label class="block mb-2 text-[10px] opacity-70">MISSION OBJECTIVE:</label>
                         <input type="text" name="name" placeholder="ENTER TASK..." required class="border-4 border-lifeos-text p-3 bg-lifeos-bg/20 focus:outline-none focus:bg-lifeos-accent1/20 w-full uppercase">
                     </div>
                     
                     <div class="mb-4">
-                        <label class="block mb-2 text-[8px] opacity-70">TIME LIMIT (DEADLINE):</label>
+                        <label class="block mb-2 text-[10px] opacity-70">TIME LIMIT (DEADLINE):</label>
                         <div class="flex gap-4">
                             <input type="number" id="day-input" placeholder="DD" min="1" max="31" required class="border-4 border-lifeos-text p-3 bg-lifeos-bg/20 focus:outline-none focus:bg-lifeos-accent1/20 w-20 text-center uppercase">
-        
                             <span class="text-xl self-center font-bold">/</span>
-        
                             <input type="number" id="month-input" placeholder="MM" min="1" max="12" required class="border-4 border-lifeos-text p-3 bg-lifeos-bg/20 focus:outline-none focus:bg-lifeos-accent1/20 w-20 text-center uppercase">
                         </div>
-    
                         <input type="hidden" name="deadline" id="real-deadline-input">
                     </div>
 
@@ -54,74 +51,78 @@
                 </form>
 
                 <div class="mt-6 flex flex-col gap-3">
-    
-    {% for task in tasks %}
-        <div class="border-4 border-lifeos-text p-4 flex justify-between items-center bg-lifeos-bg/10 hover:bg-lifeos-accent1/10 transition-colors">
-            
-            <div class="flex items-center gap-4 overflow-hidden">
-                <div class="task-checkbox cursor-pointer w-6 h-6 border-4 border-lifeos-text flex-shrink-0 transition-colors {% if task.status %}bg-lifeos-text{% endif %}" 
-                     data-task-id="{{ task.id }}">
+                    {% for task in tasks %}
+                        <div class="border-4 border-lifeos-text p-4 flex flex-col bg-lifeos-bg/10 hover:bg-lifeos-accent1/10 transition-colors leading-tight">
+                            
+                            <div class="flex items-start gap-4 w-full">
+                                <div class="task-checkbox mt-1 cursor-pointer w-6 h-6 border-4 border-lifeos-text flex-shrink-0 transition-colors {% if task.status %}bg-lifeos-text{% endif %}" 
+                                     data-task-id="{{ task.id }}">
+                                </div>
+                                
+                                <div class="flex flex-col flex-grow overflow-hidden">
+                                    <span class="text-xs md:text-sm font-bold transition-all duration-300 {% if task.status %}line-through opacity-50{% endif %}" 
+                                          id="task-text-{{ task.id }}">
+                                        {{ task.name }}
+                                    </span>
+                                    
+                                    <div class="flex justify-between items-center w-full mt-3 leading-none">
+                                        <span class="text-[10px] font-bold opacity-80">
+                                            DUE: {{ task.deadline|date:"d/m" }}
+                                        </span>
+                                        <div class="flex items-center gap-6 flex-shrink-0">
+                                            <button onclick="openEditModal('{{ task.id }}', '{{ task.name|escapejs }}', '{{ task.deadline|date:'Y-m-d' }}')"
+                                                    class="text-[10px] font-bold border-b-2 border-transparent hover:border-lifeos-text transition-colors">
+                                                [ EDIT ]
+                                            </button>
+                                            <form action="{% url 'delete_task' task.id %}" method="post" class="m-0">
+                                                {% csrf_token %}
+                                                <button type="submit" class="text-[10px] text-red-600 font-bold hover:text-lifeos-text transition-colors">
+                                                    [ X ]
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                        </div>
+                    {% empty %}
+                        <div class="py-12 text-center text-xs font-bold opacity-60 leading-loose">
+                            NO ACTIVE MISSIONS.<br>PRESS '+ NEW TASK' TO BEGIN.
+                        </div>
+                    {% endfor %}
                 </div>
-                
-                <div class="flex flex-col truncate">
-                    <span class="text-xs md:text-sm font-bold uppercase truncate transition-all duration-300 {% if task.status %}line-through opacity-50{% endif %}" 
-                          id="task-text-{{ task.id }}">
-                        {{ task.name }}
-                    </span>
-                    <span class="text-[8px] opacity-70 mt-1">
-                        DUE: {{ task.deadline|date:"d/m" }}
-                    </span>
-                </div>
-            </div>
-            
-            <div class="flex items-center gap-3 ml-4 flex-shrink-0">
-                <button onclick="openEditModal('{{ task.id }}', '{{ task.name }}', '{{ task.deadline|date:'Y-m-d' }}')"
-                        class="text-[8px] border-b-2 border-transparent hover:border-lifeos-text transition-colors uppercase ml-4 flex-shrink-0">
-                    [ EDIT ]
-                </button>
-                
-                <form action="{% url 'delete_task' task.id %}" method="post" class="m-0">
-                    {% csrf_token %}
-                    <button type="submit" class="text-[8px] text-red-600 font-bold hover:text-lifeos-text transition-colors uppercase">
-                        [ X ]
-                    </button>
-                </form>
-            </div>
-        </div>
-        
-    {% empty %}
-        <div class="py-12 text-center text-xs opacity-60 leading-loose">
-            NO ACTIVE MISSIONS.<br>PRESS '+ NEW TASK' TO BEGIN.
-        </div>
-    {% endfor %}
-    
-</div>
             </section>
 
             <section class="border-4 border-lifeos-text p-6 md:p-8 bg-white shadow-[8px_8px_0px_0px_#4d0057]">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b-4 border-lifeos-text pb-4 mb-6 gap-4">
-                    <h2 class="text-xl text-lifeos-accent1 drop-shadow-[2px_2px_0px_#4d0057]">HABIT TRACKER</h2>
-                    <button id="new-habit-btn" class="bg-lifeos-accent3 text-lifeos-text border-4 border-lifeos-text px-4 py-3 text-[10px] shadow-[4px_4px_0px_0px_#4d0057] hover:translate-y-1 hover:translate-x-1 hover:shadow-none transition-all">
+                    <div class="flex items-center gap-4">
+                        <h2 class="text-xl text-lifeos-accent1 drop-shadow-[2px_2px_0px_#4d0057] font-bold">HABIT TRACKER</h2>
+                        <button onclick="openStatsModal()" class="text-2xl hover:scale-125 transition-transform origin-bottom drop-shadow-[2px_2px_0px_#4d0057]" title="PLAYER STATISTICS">
+                            🏆
+                        </button>
+                    </div>
+                    <button id="new-habit-btn" class="bg-lifeos-accent3 text-lifeos-text border-4 border-lifeos-text px-4 py-3 text-[10px] font-bold shadow-[4px_4px_0px_0px_#4d0057] hover:translate-y-1 hover:translate-x-1 hover:shadow-none transition-all">
                         + NEW HABIT
                     </button>
                 </div>
 
-                <form action="{% url 'add_habit' %}" method="post" id="add-habit-form" class="hidden flex flex-col gap-4 mb-6 text-[10px] border-b-4 border-lifeos-text/20 pb-6">
+                <form action="{% url 'add_habit' %}" method="post" id="add-habit-form" class="hidden flex flex-col gap-4 mb-6 text-[10px] font-bold border-b-4 border-lifeos-text/20 pb-6">
                     {% csrf_token %}
                     
                     <div>
-                        <label class="block mb-2 text-[8px] opacity-70">HABIT NAME:</label>
+                        <label class="block mb-2 text-[10px] opacity-70">HABIT NAME:</label>
                         <input type="text" name="name" placeholder="ENTER HABIT..." required class="border-4 border-lifeos-text p-3 bg-lifeos-bg/20 focus:outline-none focus:bg-lifeos-accent3/20 w-full uppercase">
                     </div>
                     
                     <div>
-                        <label class="block mb-2 text-[8px] opacity-70">CATEGORY (OPTIONAL):</label>
+                        <label class="block mb-2 text-[10px] opacity-70">CATEGORY (OPTIONAL):</label>
                         <input type="text" name="category" placeholder="E.G. HEALTH, WORK..." class="border-4 border-lifeos-text p-3 bg-lifeos-bg/20 focus:outline-none focus:bg-lifeos-accent3/20 w-full uppercase">
                     </div>
 
                     <div class="flex flex-col sm:flex-row gap-4">
                         <div class="w-full sm:w-1/2">
-                            <label class="block mb-2 text-[8px] opacity-70">REPEAT CYCLE:</label>
+                            <label class="block mb-2 text-[10px] opacity-70">REPEAT CYCLE:</label>
                             <select name="interval_type" id="habit-interval-select" class="border-4 border-lifeos-text p-3 bg-white focus:outline-none focus:bg-lifeos-accent3/20 w-full uppercase appearance-none cursor-pointer">
                                 <option value="DAILY">DAILY</option>
                                 <option value="WEEKLY">WEEKLY</option>
@@ -133,7 +134,7 @@
                         </div>
                         
                         <div class="w-full sm:w-1/2 hidden" id="custom-days-container">
-                            <label class="block mb-2 text-[8px] opacity-70">EVERY X DAYS:</label>
+                            <label class="block mb-2 text-[10px] opacity-70">EVERY X DAYS:</label>
                             <input type="number" name="interval_days" id="habit-interval-days" placeholder="E.G. 3" min="1" class="border-4 border-lifeos-text p-3 bg-lifeos-bg/20 focus:outline-none focus:bg-lifeos-accent3/20 w-full text-center uppercase">
                         </div>
                     </div>
@@ -148,63 +149,139 @@
                     </div>
                 </form>
 
-                <div class="mt-6 flex flex-col gap-3">
+                <div class="mt-6 flex flex-col gap-3 leading-tight">
                     {% for habit in habits %}
-                        <div class="border-4 border-lifeos-text p-4 flex justify-between items-center bg-lifeos-bg/10 hover:bg-lifeos-accent3/10 transition-colors">
+                        <div class="border-4 border-lifeos-text p-4 flex flex-col bg-lifeos-bg/10 hover:bg-lifeos-accent3/10 transition-colors">
                             
-                            <div class="flex items-center gap-4 overflow-hidden w-full">
-                                <div class="habit-checkbox cursor-pointer w-6 h-6 border-4 border-lifeos-text flex-shrink-0 transition-colors {% if habit.status %}bg-lifeos-text{% endif %}" 
+                            <div class="flex items-start gap-4 w-full">
+                                <div class="habit-checkbox mt-1 cursor-pointer w-6 h-6 border-4 border-lifeos-text flex-shrink-0 transition-colors {% if habit.status %}bg-lifeos-text{% endif %}" 
                                      data-habit-id="{{ habit.id }}">
                                 </div>
                                 
-                                <div class="flex flex-col truncate flex-grow">
-                                    <div class="flex justify-between items-center w-full">
-                                        <span class="text-xs md:text-sm font-bold uppercase truncate transition-all duration-300 {% if habit.status %}line-through opacity-50{% endif %}" 
-                                              id="habit-text-{{ habit.id }}">
-                                            {{ habit.name }}
-                                        </span>
-                                        <span class="text-[10px] font-bold text-lifeos-accent3 ml-2 flex-shrink-0">
-                                            🔥 {{ habit.current_streak }}
-                                        </span>
-                                    </div>
-                                    <div class="flex justify-between items-center w-full mt-1">
-                                         <span class="text-[8px] opacity-70">
-                                            {% if habit.category %}[{{ habit.category }}]{% endif %} CYCLE: {{ habit.get_interval_type_display|upper }}
-                                        </span>
+                                <div class="flex flex-col flex-grow overflow-hidden">
+                                    <span class="text-xs md:text-sm font-bold transition-all duration-300 {% if habit.status %}line-through opacity-50{% endif %}" 
+                                          id="habit-text-{{ habit.id }}">
+                                        {{ habit.name }}
+                                    </span>
+                                    
+                                    <div class="flex justify-between items-center w-full mt-3 leading-none">
+                                        <div class="flex flex-col gap-1">
+                                            <span class="text-[10px] font-extrabold text-black opacity-90">
+                                                STREAK: {{ habit.current_streak }}
+                                            </span>
+                                            <span class="text-[10px] font-bold opacity-70">
+                                                {% if habit.category %}[{{ habit.category }}] {% endif %}CYCLE: {{ habit.get_interval_type_display }}
+                                            </span>
+                                        </div>
+                                        <div class="flex items-center gap-6 flex-shrink-0">
+                                            <button onclick="openHabitEditModal('{{ habit.id }}', '{{ habit.name|escapejs }}', '{{ habit.category|default_if_none:""|escapejs }}', '{{ habit.interval_type }}', '{{ habit.interval_days|default_if_none:1 }}')" 
+                                                    class="text-[10px] font-bold border-b-2 border-transparent hover:border-lifeos-text transition-colors">
+                                                [ EDIT ]
+                                            </button>
+                                            <form action="{% url 'delete_habit' habit.id %}" method="post" class="m-0">
+                                                {% csrf_token %}
+                                                <button type="submit" class="text-[10px] text-red-600 font-bold hover:text-lifeos-text transition-colors">
+                                                    [ X ]
+                                                </button>
+                                            </form>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                             
-                            <div class="flex items-center gap-3 ml-4 flex-shrink-0">
-                                <button onclick="openHabitEditModal('{{ habit.id }}', '{{ habit.name }}', '{{ habit.category|default_if_none:"" }}', '{{ habit.interval_type }}', '{{ habit.interval_days|default_if_none:1 }}')" 
-                                        class="text-[8px] border-b-2 border-transparent hover:border-lifeos-text transition-colors uppercase ml-4 flex-shrink-0">
-                                    [ EDIT ]
-                                </button>
-                                
-                                <form action="{% url 'delete_habit' habit.id %}" method="post" class="m-0">
-                                    {% csrf_token %}
-                                    <button type="submit" class="text-[8px] text-red-600 font-bold hover:text-lifeos-text transition-colors uppercase">
-                                        [ X ]
-                                    </button>
-                                </form>
-                            </div>
                         </div>
                     {% empty %}
-                        <div class="py-12 text-center text-xs opacity-60 leading-loose">
+                        <div class="py-12 text-center text-xs font-bold opacity-60 leading-loose">
                             NO HABITS TRACKED.<br>PRESS '+ NEW HABIT' TO BEGIN.
                         </div>
                     {% endfor %}
                 </div>
             </section>
 
-        </div> <aside class="w-full lg:w-1/3 sticky top-24">
-            <section class="border-4 border-lifeos-text p-6 bg-lifeos-text text-white shadow-[8px_8px_0px_0px_rgba(0,0,0,0.5)] min-h-[300px] flex flex-col">
+        </div> 
+        
+        <aside class="w-full lg:w-1/3 sticky top-24">
+            <section class="border-4 border-lifeos-text p-6 bg-lifeos-text text-white shadow-[8px_8px_0px_0px_rgba(0,0,0,0.5)] min-h-[300px] flex flex-col uppercase">
                 <div class="border-b-4 border-white pb-3 mb-4 flex justify-between items-center">
-                    <h3 class="text-sm leading-loose">STICKY NOTES</h3>
+                    <h3 class="text-sm font-bold leading-loose">STICKY NOTES <span class="text-[10px] opacity-70">({{ notes.count }}/5)</span></h3>
+                    
+                    {% if can_add_note %}
+                        <button id="new-note-btn" class="bg-white text-lifeos-text border-2 border-white px-2 py-1 text-[8px] font-bold hover:bg-lifeos-accent1 transition-colors">
+                            + ADD
+                        </button>
+                    {% else %}
+                        <span class="text-[8px] text-red-400 font-bold border-2 border-red-400 px-2 py-1">
+                            MEMORY FULL!
+                        </span>
+                    {% endif %}
                 </div>
-                
-                <div class="py-4 text-xs leading-loose opacity-90 flex-grow">
-                    DROP A QUICK NOTE HERE...
+
+                <form action="{% url 'add_note' %}" method="post" id="add-note-form" class="hidden flex flex-col gap-3 mb-6 text-[10px] font-bold border-b-2 border-white/20 pb-6">
+                    {% csrf_token %}
+                    
+                    <div>
+                        <label class="block mb-1 text-[10px] opacity-70">CONTENT (MAX 255 CHARS):</label>
+                        <textarea name="content" placeholder="ENTER NOTE..." required rows="3" class="border-2 border-white p-2 bg-lifeos-text focus:outline-none focus:bg-white/10 w-full text-white placeholder-white/50 resize-none uppercase"></textarea>
+                    </div>
+
+                    <div class="flex gap-2">
+                        <div class="w-1/2">
+                            <label class="block mb-1 text-[10px] opacity-70">CATEGORY:</label>
+                            <input type="text" name="category" placeholder="E.G. WORK" class="border-2 border-white p-2 bg-lifeos-text focus:outline-none focus:bg-white/10 w-full text-white placeholder-white/50 uppercase">
+                        </div>
+                        <div class="w-1/2">
+                            <label class="block mb-1 text-[10px] opacity-70">AUTO-DELETE ON:</label>
+                            <input type="date" name="time_to_delete" class="border-2 border-white p-2 bg-lifeos-text focus:outline-none focus:bg-white/10 w-full text-white placeholder-white/50 uppercase">
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end gap-2 mt-2">
+                        <button type="button" id="cancel-note-btn" class="border-2 border-white px-3 py-2 hover:bg-white/10 transition-colors">
+                            CANCEL
+                        </button>
+                        <button type="submit" class="bg-white text-lifeos-text px-3 py-2 font-bold hover:bg-lifeos-accent1 transition-colors">
+                            SAVE
+                        </button>
+                    </div>
+                </form>
+
+                <div class="flex flex-col gap-4 flex-grow">
+                    {% for note in notes %}
+                        <div class="border-2 border-white p-3 relative group">
+                            
+                            <div class="absolute top-2 right-2 flex gap-1 items-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                <button onclick="openNoteEditModal('{{ note.id }}', '{{ note.content|escapejs }}', '{{ note.category|default_if_none:""|escapejs }}', '{{ note.time_to_delete|date:'Y-m-d'|default_if_none:"" }}')" 
+                                        class="h-5 w-5 flex items-center justify-center text-[10px] font-bold bg-white text-lifeos-text hover:bg-lifeos-accent1 leading-none">
+                                    [ E ]
+                                </button>
+                                <form action="{% url 'delete_note' note.id %}" method="post" class="m-0 h-5">
+                                    {% csrf_token %}
+                                    <button type="submit" class="h-full w-5 flex items-center justify-center text-[10px] font-bold bg-red-500 text-white hover:bg-red-600 leading-none">
+                                        [ X ]
+                                    </button>
+                                </form>
+                            </div>
+
+                            <p class="text-xs font-bold leading-relaxed mb-2 pr-10 whitespace-pre-wrap">{{ note.content }}</p>
+                            
+                            <div class="flex justify-between items-end border-t border-white/20 pt-2 mt-2 text-[10px] opacity-70 font-bold leading-none">
+                                <span>
+                                    {% if note.category %} [{{ note.category }}] {% endif %}
+                                </span>
+                                <span class="text-right">
+                                    ADDED: {{ note.date_added|date:"d/m" }}
+                                    {% if note.time_to_delete %}
+                                        <br>
+                                        <span class="text-lifeos-accent1 opacity-100">EXPIRES: {{ note.time_to_delete|date:"d/m" }}</span>
+                                    {% endif %}
+                                </span>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <div class="py-12 text-center text-[10px] font-bold opacity-60 leading-loose flex-grow flex items-center justify-center">
+                            NO NOTES SAVED.
+                        </div>
+                    {% endfor %}
                 </div>
             </section>
         </aside>
@@ -212,26 +289,25 @@
     </div>
 
 {% else %}
-    
-    <div class="flex flex-col items-center justify-center text-center px-4 min-h-[calc(100vh-120px)] -mt-10 md:-mt-16">
+    <div class="flex flex-col items-center justify-center text-center px-4 min-h-[calc(100vh-120px)] -mt-10 md:-mt-16 uppercase">
         
         <img src="{% static 'images/hero-logo.png' %}" alt="TO-BIT. TODO | HABIT TRACKER" class="w-full max-w-2xl md:max-w-3xl mb-2 drop-shadow-[10px_10px_0px_#4d0057]">
 
-        <p class="text-[10px] md:text-xs leading-loose mb-6 max-w-2xl px-4">
+        <p class="text-[10px] font-bold md:text-xs leading-loose mb-6 max-w-2xl px-4">
             YOUR PERSONAL COMMAND CENTER. LEVEL UP YOUR LIFE.
         </p>
         
         <div class="flex flex-col sm:flex-row gap-6 w-full justify-center max-w-lg mx-auto">
             <form action="{% url 'login' %}" method="post" class="w-full">
                 {% csrf_token %}
-                <button type="submit" class="w-full bg-lifeos-accent3 text-lifeos-text border-4 border-lifeos-text px-4 py-4 text-xs shadow-[6px_6px_0px_0px_#4d0057] hover:translate-y-1 hover:translate-x-1 hover:shadow-none transition-all">
+                <button type="submit" class="w-full font-bold bg-lifeos-accent3 text-lifeos-text border-4 border-lifeos-text px-4 py-4 text-xs shadow-[6px_6px_0px_0px_#4d0057] hover:translate-y-1 hover:translate-x-1 hover:shadow-none transition-all">
                     INSERT COIN
                 </button>
             </form>
 
             <form action="{% url 'signup' %}" method="post" class="w-full">
                 {% csrf_token %}
-                <button type="submit" class="w-full bg-lifeos-accent1 text-lifeos-text border-4 border-lifeos-text px-4 py-4 text-xs shadow-[6px_6px_0px_0px_#4d0057] hover:translate-y-1 hover:translate-x-1 hover:shadow-none transition-all">
+                <button type="submit" class="w-full font-bold bg-lifeos-accent1 text-lifeos-text border-4 border-lifeos-text px-4 py-4 text-xs shadow-[6px_6px_0px_0px_#4d0057] hover:translate-y-1 hover:translate-x-1 hover:shadow-none transition-all">
                     PLAYER 2
                 </button>
             </form>
@@ -239,19 +315,20 @@
     </div>
 
 {% endif %}
-<div id="edit-modal" class="hidden fixed inset-0 bg-lifeos-text/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+
+<div id="edit-modal" class="hidden fixed inset-0 bg-lifeos-text/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4 uppercase">
     <div class="bg-white border-4 border-lifeos-text p-6 md:p-10 shadow-[10px_10px_0px_0px_#00ffff] w-full max-w-md">
-        <h2 class="text-xl text-lifeos-accent1 mb-6 drop-shadow-[2px_2px_0px_#4d0057]">EDIT MISSION</h2>
+        <h2 class="text-xl text-lifeos-accent1 font-bold mb-6 drop-shadow-[2px_2px_0px_#4d0057]">EDIT MISSION</h2>
         
-        <form action="" method="post" id="edit-task-form" class="flex flex-col gap-4 text-[10px]">
+        <form action="" method="post" id="edit-task-form" class="flex flex-col gap-4 text-[10px] font-bold">
             {% csrf_token %}
             <div>
                 <label class="block mb-2 opacity-70">REWRITE OBJECTIVE:</label>
-                <input type="text" name="name" id="edit-name" required class="border-4 border-lifeos-text p-3 w-full bg-lifeos-bg/20 focus:outline-none">
+                <input type="text" name="name" id="edit-name" required class="border-4 border-lifeos-text p-3 w-full bg-lifeos-bg/20 focus:outline-none uppercase">
             </div>
             <div>
                 <label class="block mb-2 opacity-70">NEW DEADLINE:</label>
-                <input type="date" name="deadline" id="edit-deadline" required class="border-4 border-lifeos-text p-3 w-full bg-lifeos-bg/20 focus:outline-none">
+                <input type="date" name="deadline" id="edit-deadline" required class="border-4 border-lifeos-text p-3 w-full bg-lifeos-bg/20 focus:outline-none uppercase">
             </div>
 
             <div class="flex justify-end gap-4 mt-4">
@@ -264,25 +341,25 @@
     </div>
 </div>
 
-<div id="edit-habit-modal" class="hidden fixed inset-0 bg-lifeos-text/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+<div id="edit-habit-modal" class="hidden fixed inset-0 bg-lifeos-text/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4 uppercase">
     <div class="bg-white border-4 border-lifeos-text p-6 md:p-10 shadow-[10px_10px_0px_0px_#ff00ff] w-full max-w-md">
-        <h2 class="text-xl text-lifeos-accent3 mb-6 drop-shadow-[2px_2px_0px_#4d0057]">EDIT HABIT</h2>
+        <h2 class="text-xl text-lifeos-accent3 font-bold mb-6 drop-shadow-[2px_2px_0px_#4d0057]">EDIT HABIT</h2>
         
-        <form action="" method="post" id="edit-habit-form" class="flex flex-col gap-4 text-[10px]">
+        <form action="" method="post" id="edit-habit-form" class="flex flex-col gap-4 text-[10px] font-bold">
             {% csrf_token %}
             <div>
                 <label class="block mb-2 opacity-70">HABIT NAME:</label>
-                <input type="text" name="name" id="edit-habit-name" required class="border-4 border-lifeos-text p-3 w-full bg-lifeos-bg/20 focus:outline-none">
+                <input type="text" name="name" id="edit-habit-name" required class="border-4 border-lifeos-text p-3 w-full bg-lifeos-bg/20 focus:outline-none uppercase">
             </div>
             
             <div>
                 <label class="block mb-2 opacity-70">CATEGORY:</label>
-                <input type="text" name="category" id="edit-habit-category" class="border-4 border-lifeos-text p-3 w-full bg-lifeos-bg/20 focus:outline-none">
+                <input type="text" name="category" id="edit-habit-category" class="border-4 border-lifeos-text p-3 w-full bg-lifeos-bg/20 focus:outline-none uppercase">
             </div>
 
             <div class="flex flex-col sm:flex-row gap-4">
                 <div class="w-full sm:w-1/2">
-                    <label class="block mb-2 text-[8px] opacity-70">REPEAT CYCLE:</label>
+                    <label class="block mb-2 opacity-70">REPEAT CYCLE:</label>
                     <select name="interval_type" id="edit-habit-interval" class="border-4 border-lifeos-text p-3 bg-white focus:outline-none focus:bg-lifeos-accent1/20 w-full uppercase appearance-none cursor-pointer">
                         <option value="DAILY">DAILY</option>
                         <option value="WEEKLY">WEEKLY</option>
@@ -294,7 +371,7 @@
                 </div>
                 
                 <div class="w-full sm:w-1/2 hidden" id="edit-custom-days-container">
-                    <label class="block mb-2 text-[8px] opacity-70">EVERY X DAYS:</label>
+                    <label class="block mb-2 opacity-70">EVERY X DAYS:</label>
                     <input type="number" name="interval_days" id="edit-habit-interval-days" placeholder="E.G. 3" min="1" class="border-4 border-lifeos-text p-3 bg-lifeos-bg/20 focus:outline-none focus:bg-lifeos-accent1/20 w-full text-center uppercase">
                 </div>
             </div>
@@ -309,17 +386,93 @@
     </div>
 </div>
 
+<div id="edit-note-modal" class="hidden fixed inset-0 bg-lifeos-text/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4 uppercase">
+    <div class="bg-lifeos-text border-4 border-white text-white p-6 md:p-10 shadow-[10px_10px_0px_0px_#ffffff] w-full max-w-sm">
+        <h2 class="text-xl font-bold mb-6 drop-shadow-[2px_2px_0px_#4d0057]">EDIT NOTE</h2>
+        
+        <form action="" method="post" id="edit-note-form" class="flex flex-col gap-4 text-[10px] font-bold">
+            {% csrf_token %}
+            <div>
+                <label class="block mb-2 opacity-70">REWRITE CONTENT:</label>
+                <textarea name="content" id="edit-note-content" required rows="4" class="border-2 border-white p-3 w-full bg-lifeos-text focus:outline-none focus:bg-white/10 text-white resize-none uppercase"></textarea>
+            </div>
+            
+            <div class="flex gap-4">
+                <div class="w-1/2">
+                    <label class="block mb-2 opacity-70">CATEGORY:</label>
+                    <input type="text" name="category" id="edit-note-category" class="border-2 border-white p-3 w-full bg-lifeos-text focus:outline-none text-white uppercase">
+                </div>
+                <div class="w-1/2">
+                    <label class="block mb-2 opacity-70">AUTO-DELETE ON:</label>
+                    <input type="date" name="time_to_delete" id="edit-note-delete-date" class="border-2 border-white p-3 w-full bg-lifeos-text focus:outline-none text-white uppercase">
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-4 mt-4">
+                <button type="button" onclick="closeNoteEditModal()" class="border-2 border-white px-4 py-2 hover:bg-white/10">CANCEL</button>
+                <button type="submit" class="bg-white text-lifeos-text px-6 py-2 shadow-[4px_4px_0px_0px_#00ffff] font-bold hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all">
+                    UPDATE NOTE
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="stats-modal" class="hidden fixed inset-0 bg-lifeos-text/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4 uppercase">
+    <div class="bg-white border-4 border-lifeos-text p-6 md:p-8 shadow-[10px_10px_0px_0px_#ffd700] w-full max-w-3xl max-h-[85vh] flex flex-col">
+        
+        <div class="flex justify-between items-center border-b-4 border-lifeos-text pb-4 mb-6">
+            <h2 class="text-xl md:text-2xl font-bold text-yellow-500 drop-shadow-[2px_2px_0px_#4d0057]">HALL OF FAME</h2>
+            <button onclick="closeStatsModal()" class="text-lifeos-text font-bold text-xl hover:text-red-500 transition-colors">
+                [ X ]
+            </button>
+        </div>
+        
+        <div class="flex-grow overflow-y-auto pr-2 flex flex-col gap-4 leading-none">
+            {% for habit in habits %}
+                <div class="border-4 border-lifeos-text bg-lifeos-bg/10 p-4">
+                    <h3 class="text-sm font-bold mb-3 text-lifeos-accent1 border-b-2 border-lifeos-text/20 pb-2">
+                        {{ habit.name }}
+                    </h3>
+                    
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-[10px] font-bold opacity-90">
+                        <div class="flex flex-col gap-1">
+                            <span class="opacity-60 mb-1 text-[8px]">STREAK (CURR / BEST)</span>
+                            <span class="text-lifeos-accent3">STREAK: {{ habit.current_streak }} / BEST: {{ habit.best_streak }}</span>
+                        </div>
+                        <div class="flex flex-col gap-1">
+                            <span class="opacity-60 mb-1 text-[8px]">TOTAL REPS</span>
+                            <span>REPS: {{ habit.number_of_repetitions }}</span>
+                        </div>
+                        <div class="flex flex-col gap-1">
+                            <span class="opacity-60 mb-1 text-[8px]">STARTED ON</span>
+                            <span>ADDED: {{ habit.date_added|date:"d.m.Y" }}</span>
+                        </div>
+                        <div class="flex flex-col gap-1">
+                            <span class="opacity-60 mb-1 text-[8px]">LAST DONE</span>
+                            <span>LAST: {{ habit.last_completed|date:"d.m.Y"|default:"NEVER" }}</span>
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="py-12 text-center text-[10px] font-bold opacity-60 leading-loose">
+                    NO HABIT DATA AVAILABLE.<br>START GRINDING EXP!
+                </div>
+            {% endfor %}
+        </div>
+        
+    </div>
+</div>
+
 <script>
     const newTaskBtn = document.getElementById('new-task-btn');
     const taskForm = document.getElementById('add-task-form');
     const cancelTaskBtn = document.getElementById('cancel-task-btn');
 
-
     newTaskBtn.addEventListener('click', () => {
         taskForm.classList.remove('hidden');
         newTaskBtn.classList.add('hidden');
     });
-
 
     cancelTaskBtn.addEventListener('click', () => {
         taskForm.classList.add('hidden');
@@ -327,67 +480,56 @@
         taskForm.reset();
     });
 
-
     const dayInput = document.getElementById('day-input');
     const monthInput = document.getElementById('month-input');
     const realDeadlineInput = document.getElementById('real-deadline-input');
     const currentYear = new Date().getFullYear();
 
-    
     taskForm.addEventListener('submit', (e) => {
-    
         let d = dayInput.value;
         let m = monthInput.value;
-    
-        
         if(d.length === 1) d = '0' + d;
         if(m.length === 1) m = '0' + m;
-    
-        
         realDeadlineInput.value = `${currentYear}-${m}-${d}`;
     });
-
    
     const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
     document.querySelectorAll('.task-checkbox').forEach(box => {
-    box.addEventListener('click', function() {
-        const taskId = this.getAttribute('data-task-id');
-        const textElement = document.getElementById(`task-text-${taskId}`);
-        
-        this.classList.toggle('bg-lifeos-text');
-        textElement.classList.toggle('line-through');
-        textElement.classList.toggle('opacity-50');
+        box.addEventListener('click', function() {
+            const taskId = this.getAttribute('data-task-id');
+            const textElement = document.getElementById(`task-text-${taskId}`);
+            
+            this.classList.toggle('bg-lifeos-text');
+            textElement.classList.toggle('line-through');
+            textElement.classList.toggle('opacity-50');
 
-        fetch(`/todo/task/${taskId}/toggle/`, {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': csrfToken,
-                'Content-Type': 'application/json'
-            }
-        }).then(response => {
-            if(!response.ok) {
-                
-                alert('Connection error! Mission status not saved.');
-                this.classList.toggle('bg-lifeos-text');
-                textElement.classList.toggle('line-through');
-                textElement.classList.toggle('opacity-50');
-            }
+            fetch(`/todo/task/${taskId}/toggle/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                    'Content-Type': 'application/json'
+                }
+            }).then(response => {
+                if(!response.ok) {
+                    alert('Connection error! Mission status not saved.');
+                    this.classList.toggle('bg-lifeos-text');
+                    textElement.classList.toggle('line-through');
+                    textElement.classList.toggle('opacity-50');
+                }
+            });
         });
     });
-});
+
     const editModal = document.getElementById('edit-modal');
     const editForm = document.getElementById('edit-task-form');
     const editNameInput = document.getElementById('edit-name');
     const editDeadlineInput = document.getElementById('edit-deadline');
 
     function openEditModal(id, name, deadline) {
-        
         editForm.action = `/todo/task/${id}/edit/`;
-
         editNameInput.value = name;
         editDeadlineInput.value = deadline;
-
         editModal.classList.remove('hidden');
     }
 
@@ -469,7 +611,6 @@
 
     function openHabitEditModal(id, name, category, intervalType, intervalDays) {
         editHabitForm.action = `/habits/habit/${id}/edit/`;
-        
         editHabitNameInput.value = name;
         editHabitCategoryInput.value = category;
         editHabitIntervalSelect.value = intervalType;
@@ -483,12 +624,58 @@
             editHabitIntervalDaysInput.value = '';
             editHabitIntervalDaysInput.required = false;
         }
-
         editHabitModal.classList.remove('hidden');
     }
 
     function closeHabitEditModal() {
         editHabitModal.classList.add('hidden');
+    }
+
+    const newNoteBtn = document.getElementById('new-note-btn');
+    const noteForm = document.getElementById('add-note-form');
+    const cancelNoteBtn = document.getElementById('cancel-note-btn');
+    
+    if(newNoteBtn) {
+        newNoteBtn.addEventListener('click', () => {
+            noteForm.classList.remove('hidden');
+            newNoteBtn.classList.add('hidden');
+        });
+    }
+
+    if(cancelNoteBtn) {
+        cancelNoteBtn.addEventListener('click', () => {
+            noteForm.classList.add('hidden');
+            newNoteBtn.classList.remove('hidden');
+            noteForm.reset();
+        });
+    }
+
+    const editNoteModal = document.getElementById('edit-note-modal');
+    const editNoteForm = document.getElementById('edit-note-form');
+    const editNoteContentInput = document.getElementById('edit-note-content');
+    const editNoteCategoryInput = document.getElementById('edit-note-category');
+    const editNoteDeleteDateInput = document.getElementById('edit-note-delete-date');
+
+    function openNoteEditModal(id, content, category, deleteDate) {
+        editNoteForm.action = `/notes/note/${id}/edit/`; 
+        editNoteContentInput.value = content;
+        editNoteCategoryInput.value = category;
+        editNoteDeleteDateInput.value = deleteDate;
+        editNoteModal.classList.remove('hidden');
+    }
+
+    function closeNoteEditModal() {
+        editNoteModal.classList.add('hidden');
+    }
+    
+    const statsModal = document.getElementById('stats-modal');
+
+    function openStatsModal() {
+        statsModal.classList.remove('hidden');
+    }
+
+    function closeStatsModal() {
+        statsModal.classList.add('hidden');
     }
 </script>
 {% endblock content %}
