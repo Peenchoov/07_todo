@@ -1,7 +1,11 @@
 from django.shortcuts import render
 from django.views.generic import TemplateView, ListView, DetailView
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
+
 from todo.models import Task
+from habits.models import Habit
+
+from datetime import date, timedelta
 
 
 class HomePageView(TemplateView):
@@ -13,7 +17,41 @@ class HomePageView(TemplateView):
 
         if self.request.user.is_authenticated:
             context["tasks"] = Task.objects.filter(author=self.request.user)
+            user_habits = Habit.objects.filter(author=self.request.user)
+            today = date.today()
 
+            for habit in user_habits:
+                if habit.last_completed:
+                    should_reset = False
+
+                    days_since_completed = (today - habit.last_completed).days
+
+                    if habit.interval_type == "DAILY" and days_since_completed >= 1:
+                        should_reset = True
+                    elif habit.interval_type == "WEEKLY" and days_since_completed >= 7:
+                        should_reset = True
+                    elif (
+                        habit.interval_type == "MONTHLY" and days_since_completed >= 30
+                    ):
+                        should_reset = True
+                    elif (
+                        habit.interval_type == "WEEKDAYS"
+                        and today.weekday() < 5
+                        and days_since_completed >= 1
+                    ):
+                        should_reset = True
+                    elif (
+                        habit.interval_type == "WEEKENDS"
+                        and today.weekday() >= 5
+                        and days_since_completed >= 1
+                    ):
+                        should_reset = True
+                    elif (
+                        habit.interval_type == "CUSTOM_DAYS"
+                        and days_since_completed >= habit.interval_days
+                    ):
+                        should_reset = True
+            context["habits"] = user_habits
         return context
 
 

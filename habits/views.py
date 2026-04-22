@@ -1,16 +1,17 @@
 from django.shortcuts import render
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
-from .models import Task
-from .forms import TaskForm
+from .models import Habit
+from .forms import HabitForm
 from django.urls import reverse_lazy
 from django.http import HttpResponseRedirect, JsonResponse
 from django.views import View
 from django.shortcuts import get_object_or_404
+from datetime import date
 
 
-class AddTaskView(CreateView):
-    model = Task
-    form_class = TaskForm
+class AddHabitView(CreateView):
+    model = Habit
+    form_class = HabitForm
     success_url = reverse_lazy("home")
 
     def form_valid(self, form):
@@ -19,19 +20,20 @@ class AddTaskView(CreateView):
         return super().form_valid(form)
 
 
-class ToggleTaskStatusView(View):
+class ToggleHabitStatusView(View):
     def post(self, request, pk):
-        task = get_object_or_404(Task, pk=pk, author=request.user)
-        task.status = not task.status
-        task.save()
+        habit = get_object_or_404(Habit, pk=pk, author=request.user)
+        habit.status = not habit.status
+        if habit.status:
+            habit.last_completed = date.today()
+        habit.save()
+        return JsonResponse({"status": habit.status})
 
-        return JsonResponse({"status": task.status})
 
-
-class EditTaskView(UpdateView):
-    model = Task
-    form_class = TaskForm
-    template_name = "todo/task_edit.html"
+class EditHabitView(UpdateView):
+    model = Habit
+    form_class = HabitForm
+    template_name = "todo/habit_edit.html"
     success_url = reverse_lazy("home")
 
     def get(self, *args, **kwargs):
@@ -41,8 +43,8 @@ class EditTaskView(UpdateView):
         return HttpResponseRedirect(self.success_url)
 
 
-class DeleteTaskView(DeleteView):
-    model = Task
+class DeleteHabitView(DeleteView):
+    model = Habit
     success_url = reverse_lazy("home")
 
     def get_queryset(self):

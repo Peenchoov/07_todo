@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     "accounts",
     "pages",
     "todo",
+    "habits",
 ]
 
 MIDDLEWARE = [

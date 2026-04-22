@@ -75,7 +75,7 @@
             </div>
             
             <div class="flex items-center gap-3 ml-4 flex-shrink-0">
-                <button onclick="openEditModal('{{ task.id }}', '{{ task.name }}', '{{ task.deadline|date:'Y-m-d' }}')" 
+                <button onclick="openEditModal('{{ task.id }}', '{{ task.name }}', '{{ task.deadline|date:'Y-m-d' }}')"
                         class="text-[8px] border-b-2 border-transparent hover:border-lifeos-text transition-colors uppercase ml-4 flex-shrink-0">
                     [ EDIT ]
                 </button>
@@ -101,12 +101,99 @@
             <section class="border-4 border-lifeos-text p-6 md:p-8 bg-white shadow-[8px_8px_0px_0px_#4d0057]">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b-4 border-lifeos-text pb-4 mb-6 gap-4">
                     <h2 class="text-xl text-lifeos-accent1 drop-shadow-[2px_2px_0px_#4d0057]">HABIT TRACKER</h2>
-                    <button class="bg-lifeos-accent3 text-lifeos-text border-4 border-lifeos-text px-4 py-3 text-[10px] shadow-[4px_4px_0px_0px_#4d0057] hover:translate-y-1 hover:translate-x-1 hover:shadow-none transition-all">
+                    <button id="new-habit-btn" class="bg-lifeos-accent3 text-lifeos-text border-4 border-lifeos-text px-4 py-3 text-[10px] shadow-[4px_4px_0px_0px_#4d0057] hover:translate-y-1 hover:translate-x-1 hover:shadow-none transition-all">
                         + NEW HABIT
                     </button>
                 </div>
-                <div class="py-12 text-center text-xs opacity-60">
-                    YOUR HABITS WILL APPEAR HERE...
+
+                <form action="{% url 'add_habit' %}" method="post" id="add-habit-form" class="hidden flex flex-col gap-4 mb-6 text-[10px] border-b-4 border-lifeos-text/20 pb-6">
+                    {% csrf_token %}
+                    
+                    <div>
+                        <label class="block mb-2 text-[8px] opacity-70">HABIT NAME:</label>
+                        <input type="text" name="name" placeholder="ENTER HABIT..." required class="border-4 border-lifeos-text p-3 bg-lifeos-bg/20 focus:outline-none focus:bg-lifeos-accent3/20 w-full uppercase">
+                    </div>
+                    
+                    <div>
+                        <label class="block mb-2 text-[8px] opacity-70">CATEGORY (OPTIONAL):</label>
+                        <input type="text" name="category" placeholder="E.G. HEALTH, WORK..." class="border-4 border-lifeos-text p-3 bg-lifeos-bg/20 focus:outline-none focus:bg-lifeos-accent3/20 w-full uppercase">
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row gap-4">
+                        <div class="w-full sm:w-1/2">
+                            <label class="block mb-2 text-[8px] opacity-70">REPEAT CYCLE:</label>
+                            <select name="interval_type" id="habit-interval-select" class="border-4 border-lifeos-text p-3 bg-white focus:outline-none focus:bg-lifeos-accent3/20 w-full uppercase appearance-none cursor-pointer">
+                                <option value="DAILY">DAILY</option>
+                                <option value="WEEKLY">WEEKLY</option>
+                                <option value="MONTHLY">MONTHLY</option>
+                                <option value="WEEKDAYS">WEEKDAYS (MON-FRI)</option>
+                                <option value="WEEKENDS">WEEKENDS (SAT-SUN)</option>
+                                <option value="CUSTOM_DAYS">CUSTOM INTERVAL</option>
+                            </select>
+                        </div>
+                        
+                        <div class="w-full sm:w-1/2 hidden" id="custom-days-container">
+                            <label class="block mb-2 text-[8px] opacity-70">EVERY X DAYS:</label>
+                            <input type="number" name="interval_days" id="habit-interval-days" placeholder="E.G. 3" min="1" class="border-4 border-lifeos-text p-3 bg-lifeos-bg/20 focus:outline-none focus:bg-lifeos-accent3/20 w-full text-center uppercase">
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end gap-4 mt-2">
+                        <button type="button" id="cancel-habit-btn" class="bg-white text-lifeos-text border-4 border-lifeos-text px-4 py-3 hover:bg-gray-100 transition-colors">
+                            CANCEL
+                        </button>
+                        <button type="submit" class="bg-lifeos-accent1 text-lifeos-text border-4 border-lifeos-text px-4 py-3 shadow-[4px_4px_0px_0px_#4d0057] hover:translate-y-1 hover:translate-x-1 hover:shadow-none transition-all">
+                            CREATE HABIT
+                        </button>
+                    </div>
+                </form>
+
+                <div class="mt-6 flex flex-col gap-3">
+                    {% for habit in habits %}
+                        <div class="border-4 border-lifeos-text p-4 flex justify-between items-center bg-lifeos-bg/10 hover:bg-lifeos-accent3/10 transition-colors">
+                            
+                            <div class="flex items-center gap-4 overflow-hidden w-full">
+                                <div class="habit-checkbox cursor-pointer w-6 h-6 border-4 border-lifeos-text flex-shrink-0 transition-colors {% if habit.status %}bg-lifeos-text{% endif %}" 
+                                     data-habit-id="{{ habit.id }}">
+                                </div>
+                                
+                                <div class="flex flex-col truncate flex-grow">
+                                    <div class="flex justify-between items-center w-full">
+                                        <span class="text-xs md:text-sm font-bold uppercase truncate transition-all duration-300 {% if habit.status %}line-through opacity-50{% endif %}" 
+                                              id="habit-text-{{ habit.id }}">
+                                            {{ habit.name }}
+                                        </span>
+                                        <span class="text-[10px] font-bold text-lifeos-accent3 ml-2 flex-shrink-0">
+                                            🔥 {{ habit.current_streak }}
+                                        </span>
+                                    </div>
+                                    <div class="flex justify-between items-center w-full mt-1">
+                                         <span class="text-[8px] opacity-70">
+                                            {% if habit.category %}[{{ habit.category }}]{% endif %} CYCLE: {{ habit.get_interval_type_display|upper }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center gap-3 ml-4 flex-shrink-0">
+                                <button onclick="openHabitEditModal('{{ habit.id }}', '{{ habit.name }}', '{{ habit.category|default_if_none:"" }}', '{{ habit.interval_type }}', '{{ habit.interval_days|default_if_none:1 }}')" 
+                                        class="text-[8px] border-b-2 border-transparent hover:border-lifeos-text transition-colors uppercase ml-4 flex-shrink-0">
+                                    [ EDIT ]
+                                </button>
+                                
+                                <form action="{% url 'delete_habit' habit.id %}" method="post" class="m-0">
+                                    {% csrf_token %}
+                                    <button type="submit" class="text-[8px] text-red-600 font-bold hover:text-lifeos-text transition-colors uppercase">
+                                        [ X ]
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <div class="py-12 text-center text-xs opacity-60 leading-loose">
+                            NO HABITS TRACKED.<br>PRESS '+ NEW HABIT' TO BEGIN.
+                        </div>
+                    {% endfor %}
                 </div>
             </section>
 
@@ -170,6 +257,51 @@
             <div class="flex justify-end gap-4 mt-4">
                 <button type="button" onclick="closeEditModal()" class="border-4 border-lifeos-text px-4 py-2 hover:bg-gray-100">CANCEL</button>
                 <button type="submit" class="bg-lifeos-accent1 text-lifeos-text border-4 border-lifeos-text px-6 py-2 shadow-[4px_4px_0px_0px_#4d0057] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all">
+                    UPDATE
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="edit-habit-modal" class="hidden fixed inset-0 bg-lifeos-text/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+    <div class="bg-white border-4 border-lifeos-text p-6 md:p-10 shadow-[10px_10px_0px_0px_#ff00ff] w-full max-w-md">
+        <h2 class="text-xl text-lifeos-accent3 mb-6 drop-shadow-[2px_2px_0px_#4d0057]">EDIT HABIT</h2>
+        
+        <form action="" method="post" id="edit-habit-form" class="flex flex-col gap-4 text-[10px]">
+            {% csrf_token %}
+            <div>
+                <label class="block mb-2 opacity-70">HABIT NAME:</label>
+                <input type="text" name="name" id="edit-habit-name" required class="border-4 border-lifeos-text p-3 w-full bg-lifeos-bg/20 focus:outline-none">
+            </div>
+            
+            <div>
+                <label class="block mb-2 opacity-70">CATEGORY:</label>
+                <input type="text" name="category" id="edit-habit-category" class="border-4 border-lifeos-text p-3 w-full bg-lifeos-bg/20 focus:outline-none">
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-4">
+                <div class="w-full sm:w-1/2">
+                    <label class="block mb-2 text-[8px] opacity-70">REPEAT CYCLE:</label>
+                    <select name="interval_type" id="edit-habit-interval" class="border-4 border-lifeos-text p-3 bg-white focus:outline-none focus:bg-lifeos-accent1/20 w-full uppercase appearance-none cursor-pointer">
+                        <option value="DAILY">DAILY</option>
+                        <option value="WEEKLY">WEEKLY</option>
+                        <option value="MONTHLY">MONTHLY</option>
+                        <option value="WEEKDAYS">WEEKDAYS</option>
+                        <option value="WEEKENDS">WEEKENDS</option>
+                        <option value="CUSTOM_DAYS">CUSTOM INTERVAL</option>
+                    </select>
+                </div>
+                
+                <div class="w-full sm:w-1/2 hidden" id="edit-custom-days-container">
+                    <label class="block mb-2 text-[8px] opacity-70">EVERY X DAYS:</label>
+                    <input type="number" name="interval_days" id="edit-habit-interval-days" placeholder="E.G. 3" min="1" class="border-4 border-lifeos-text p-3 bg-lifeos-bg/20 focus:outline-none focus:bg-lifeos-accent1/20 w-full text-center uppercase">
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-4 mt-4">
+                <button type="button" onclick="closeHabitEditModal()" class="border-4 border-lifeos-text px-4 py-2 hover:bg-gray-100">CANCEL</button>
+                <button type="submit" class="bg-lifeos-accent3 text-lifeos-text border-4 border-lifeos-text px-6 py-2 shadow-[4px_4px_0px_0px_#4d0057] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all">
                     UPDATE
                 </button>
             </div>
@@ -261,6 +393,102 @@
 
     function closeEditModal() {
         editModal.classList.add('hidden');
+    }
+
+    const newHabitBtn = document.getElementById('new-habit-btn');
+    const habitForm = document.getElementById('add-habit-form');
+    const cancelHabitBtn = document.getElementById('cancel-habit-btn');
+    const habitIntervalSelect = document.getElementById('habit-interval-select');
+    const customDaysContainer = document.getElementById('custom-days-container');
+
+    newHabitBtn.addEventListener('click', () => {
+        habitForm.classList.remove('hidden');
+        newHabitBtn.classList.add('hidden');
+    });
+
+    cancelHabitBtn.addEventListener('click', () => {
+        habitForm.classList.add('hidden');
+        newHabitBtn.classList.remove('hidden');
+        habitForm.reset();
+        customDaysContainer.classList.add('hidden');
+    });
+
+    habitIntervalSelect.addEventListener('change', (e) => {
+        if (e.target.value === 'CUSTOM_DAYS') {
+            customDaysContainer.classList.remove('hidden');
+            document.getElementById('habit-interval-days').required = true;
+        } else {
+            customDaysContainer.classList.add('hidden');
+            document.getElementById('habit-interval-days').required = false;
+        }
+    });
+
+    document.querySelectorAll('.habit-checkbox').forEach(box => {
+        box.addEventListener('click', function() {
+            const habitId = this.getAttribute('data-habit-id');
+            const textElement = document.getElementById(`habit-text-${habitId}`);
+            
+            this.classList.toggle('bg-lifeos-text');
+            textElement.classList.toggle('line-through');
+            textElement.classList.toggle('opacity-50');
+
+            fetch(`/habits/habit/${habitId}/toggle/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                    'Content-Type': 'application/json'
+                }
+            }).then(response => {
+                if(!response.ok) {
+                    alert('Connection error! Habit status not saved.');
+                    this.classList.toggle('bg-lifeos-text');
+                    textElement.classList.toggle('line-through');
+                    textElement.classList.toggle('opacity-50');
+                }
+            });
+        });
+    });
+
+    const editHabitModal = document.getElementById('edit-habit-modal');
+    const editHabitForm = document.getElementById('edit-habit-form');
+    const editHabitNameInput = document.getElementById('edit-habit-name');
+    const editHabitCategoryInput = document.getElementById('edit-habit-category');
+    const editHabitIntervalSelect = document.getElementById('edit-habit-interval');
+    const editHabitCustomDaysContainer = document.getElementById('edit-custom-days-container');
+    const editHabitIntervalDaysInput = document.getElementById('edit-habit-interval-days');
+
+    editHabitIntervalSelect.addEventListener('change', (e) => {
+        if (e.target.value === 'CUSTOM_DAYS') {
+            editHabitCustomDaysContainer.classList.remove('hidden');
+            editHabitIntervalDaysInput.required = true;
+        } else {
+            editHabitCustomDaysContainer.classList.add('hidden');
+            editHabitIntervalDaysInput.required = false;
+        }
+    });
+
+    function openHabitEditModal(id, name, category, intervalType, intervalDays) {
+        editHabitForm.action = `/habits/habit/${id}/edit/`;
+        
+        editHabitNameInput.value = name;
+        editHabitCategoryInput.value = category;
+        editHabitIntervalSelect.value = intervalType;
+        
+        if (intervalType === 'CUSTOM_DAYS') {
+            editHabitCustomDaysContainer.classList.remove('hidden');
+            editHabitIntervalDaysInput.value = intervalDays;
+            editHabitIntervalDaysInput.required = true;
+        } else {
+            editHabitCustomDaysContainer.classList.add('hidden');
+            editHabitIntervalDaysInput.value = '';
+            editHabitIntervalDaysInput.required = false;
+        }
+
+        editHabitModal.classList.remove('hidden');
+    }
+
+    function closeHabitEditModal() {
+        editHabitModal.classList.add('hidden');
     }
 </script>
 {% endblock content %}
